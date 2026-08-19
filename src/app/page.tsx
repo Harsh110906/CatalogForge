@@ -25,14 +25,22 @@ export default function DashboardPage() {
   const { currentUser } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAnalytics = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await fetch("/api/analytics");
       const json = await res.json();
-      if (json.success) setData(json);
-    } catch (e) {
+      if (json.success) {
+        setData(json);
+      } else {
+        setError(json.error || "Failed to load metrics");
+      }
+    } catch (e: any) {
       console.error(e);
+      setError(e.message || "Network connection error");
     } finally {
       setLoading(false);
     }
@@ -49,14 +57,33 @@ export default function DashboardPage() {
     return "Good evening";
   };
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
             <RefreshCw className="w-5 h-5 animate-spin text-indigo-400" />
           </div>
-          <p className="text-sm text-zinc-500">Loading workspace...</p>
+          <p className="text-sm text-zinc-500">Loading workspace metrics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-center max-w-sm">
+          <AlertTriangle className="w-8 h-8 text-amber-400" />
+          <h3 className="text-sm font-semibold text-zinc-200">Unable to load metrics</h3>
+          <p className="text-xs text-zinc-500">{error || "Could not retrieve catalog statistics."}</p>
+          <button
+            onClick={fetchAnalytics}
+            className="mt-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-all flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Retry Connection</span>
+          </button>
         </div>
       </div>
     );

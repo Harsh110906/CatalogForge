@@ -1,89 +1,172 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export type UserRole = "ADMIN" | "EDITOR" | "SUPPLIER" | "VIEWER";
 
-export interface PersonaUser {
+export interface AuthUser {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  organizationId?: string;
+  organizationName?: string;
   supplierId?: string;
   supplierName?: string;
-  avatar: string;
+  avatar?: string;
 }
 
-export const PRESET_PERSONAS: PersonaUser[] = [
-  {
-    id: "user-admin-1",
-    name: "Sarah Chen",
-    email: "sarah.chen@global-industrial.com",
-    role: "ADMIN",
-    avatar: "SC",
-  },
-  {
-    id: "user-editor-1",
-    name: "Marcus Vance",
-    email: "marcus.vance@global-industrial.com",
-    role: "EDITOR",
-    avatar: "MV",
-  },
-  {
-    id: "user-supplier-1",
-    name: "Elena Rostova",
-    email: "elena@acme-electro.de",
-    role: "SUPPLIER",
-    supplierId: "ACME-ELEC", // Match code or ID
-    supplierName: "Acme Electrical Components",
-    avatar: "ER",
-  },
-  {
-    id: "user-viewer-1",
-    name: "David Kim",
-    email: "david.kim@compliance-audit.org",
-    role: "VIEWER",
-    avatar: "DK",
-  },
-];
-
 interface AuthContextType {
-  currentUser: PersonaUser;
-  setCurrentUser: (user: PersonaUser) => void;
+  currentUser: AuthUser;
+  setCurrentUser: (user: AuthUser) => void;
+  isAuthenticated: boolean;
+  isLoading: boolean;
   isSupplier: boolean;
   canEdit: boolean;
   canApprove: boolean;
   canPublish: boolean;
   activeOrg: { id: string; name: string; slug: string };
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: { name: string; email: string; password: string; role?: string; organizationName?: string }) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
+
+const DEFAULT_USER: AuthUser = {
+  id: "user-admin",
+  name: "Workspace Administrator",
+  email: "admin@catalogforge.com",
+  role: "ADMIN",
+  organizationName: "Global Industrial Automation",
+  avatar: "WA",
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<PersonaUser>(PRESET_PERSONAS[0]);
-  const [activeOrg] = useState({
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<AuthUser>(DEFAULT_USER);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [activeOrg, setActiveOrg] = useState({
     id: "org-global-industrial",
     name: "Global Industrial Automation & Controls",
     slug: "global-industrial",
   });
 
-  // Load persona from localStorage if available
-  useEffect(() => {
-    const saved = localStorage.getItem("catalog_workspace_persona");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const match = PRESET_PERSONAS.find((p) => p.email === parsed.email);
-        if (match) setCurrentUser(match);
-      } catch (e) {
-        // ignore
+  const getInitials = (name: string) => {
+    if (!name) return "CF";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const refreshUser = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch("/api/auth/me");
+      const json = await res.json();
+
+      if (json.success && json.user) {
+        const u = json.user;
+        const formattedUser: AuthUser = {
+          ...u,
+          avatar: getInitials(u.name),
+        };
+        setCurrentUser(formattedUser);
+        setIsAuthenticated(true);
+        if (u.organizationName) {
+          setActiveOrg({
+            id: u.organizationId || "org-1",
+            name: u.organizationName,
+            slug: u.organizationName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          });
+        }
+      } else if (json.fallbackUser) {
+        const u = json.fallbackUser;
+        const formattedUser: AuthUser = {
+          ...u,
+          avatar: getInitials(u.name),
+        };
+        setCurrentUser(formattedUser);
+        setIsAuthenticated(false);
       }
+    } catch (e) {
+      console.error("Failed to load authenticated user:", e);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    refreshUser();
   }, []);
 
-  const handleSetUser = (user: PersonaUser) => {
-    setCurrentUser(user);
-    localStorage.setItem("catalog_workspace_persona", JSON.stringify(user));
+  const login = async (email: string, password: string) => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const json = await res.json();
+      if (json.success && json.user) {
+        const u = json.user;
+        const formattedUser: AuthUser = {
+          ...u,
+          avatar: getInitials(u.name),
+        };
+        setCurrentUser(formattedUser);
+        setIsAuthenticated(true);
+        return { success: true };
+      }
+      return { success: false, error: json.error || "Login failed" };
+    } catch (e: any) {
+      return { success: false, error: e.message || "Network error during login" };
+    }
+  };
+
+  const register = async (data: { name: string; email: string; password: string; role?: string; organizationName?: string }) => {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (json.success && json.user) {
+        const u = json.user;
+        const formattedUser: AuthUser = {
+          ...u,
+          avatar: getInitials(u.name),
+        };
+        setCurrentUser(formattedUser);
+        setIsAuthenticated(true);
+        return { success: true };
+      }
+      return { success: false, error: json.error || "Registration failed" };
+    } catch (e: any) {
+      return { success: false, error: e.message || "Network error during registration" };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      // ignore
+    }
+    setIsAuthenticated(false);
+    setCurrentUser(DEFAULT_USER);
+    router.push("/login");
+  };
+
+  const handleSetUser = (user: AuthUser) => {
+    setCurrentUser({
+      ...user,
+      avatar: getInitials(user.name),
+    });
   };
 
   const isSupplier = currentUser.role === "SUPPLIER";
@@ -96,11 +179,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser: handleSetUser,
+        isAuthenticated,
+        isLoading,
         isSupplier,
         canEdit,
         canApprove,
         canPublish,
         activeOrg,
+        login,
+        register,
+        logout,
+        refreshUser,
       }}
     >
       {children}

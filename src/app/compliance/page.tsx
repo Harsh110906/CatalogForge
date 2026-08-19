@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Bot, ShieldCheck, Sparkles, Download, Send, RefreshCw, Check, ArrowRight } from "lucide-react";
+import { Bot, ShieldCheck, Sparkles, Download, Send, RefreshCw, Check, ArrowRight, AlertTriangle } from "lucide-react";
 import { formatPercent } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
@@ -15,40 +15,109 @@ export default function CompliancePage() {
   const [autofillingAll, setAutofillingAll] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  const [error, setError] = useState<string | null>(null);
+
   const fetchFeeds = async () => {
-    setLoading(true);
-    const res = await fetch("/api/feeds");
-    const json = await res.json();
-    if (json.success) setData(json);
-    setLoading(false);
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch("/api/feeds");
+      const json = await res.json();
+      if (json.success) {
+        setData(json);
+      } else {
+        setError(json.error || "Failed to load feeds data");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message || "Network error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchFeeds(); }, []);
+  useEffect(() => {
+    fetchFeeds();
+  }, []);
 
   const handlePushFeed = async (feedId: string) => {
-    setPushingFeedId(feedId); setPushResult(null);
-    const res = await fetch(`/api/feeds/${feedId}/push`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ triggeredBy: currentUser.name }) });
-    setPushResult(await res.json());
-    await fetchFeeds();
-    setPushingFeedId(null);
+    try {
+      setPushingFeedId(feedId);
+      setPushResult(null);
+      const res = await fetch(`/api/feeds/${feedId}/push`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ triggeredBy: currentUser.name }),
+      });
+      setPushResult(await res.json());
+      await fetchFeeds();
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setPushingFeedId(null);
+    }
   };
 
   const handleAutofillAll = async () => {
-    setAutofillingAll(true); setFeedback(null);
-    const prodRes = await fetch("/api/products?limit=100");
-    const prodJson = await prodRes.json();
-    if (prodJson.success) {
-      const ids = prodJson.products.map((p: any) => p.id);
-      const res = await fetch("/api/products/bulk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "autofill_compliance", productIds: ids, requestedBy: currentUser.name }) });
-      const json = await res.json();
-      if (json.success) { setFeedback(`Auto-filled commerce metadata across ${json.updatedCount} products.`); await fetchFeeds(); }
+    try {
+      setAutofillingAll(true);
+      setFeedback(null);
+      const prodRes = await fetch("/api/products?limit=100");
+      const prodJson = await prodRes.json();
+      if (prodJson.success && Array.isArray(prodJson.products)) {
+        const ids = prodJson.products.map((p: any) => p.id);
+        const res = await fetch("/api/products/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "autofill_compliance",
+            productIds: ids,
+            requestedBy: currentUser.name,
+          }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          setFeedback(`Auto-filled commerce metadata across ${json.updatedCount} products.`);
+          await fetchFeeds();
+        }
+      }
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setAutofillingAll(false);
     }
-    setAutofillingAll(false);
   };
 
-  if (loading || !data) return <div className="flex items-center justify-center h-96 text-zinc-500"><RefreshCw className="w-5 h-5 animate-spin text-indigo-400 mr-2" />Loading compliance data...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96 text-zinc-500">
+        <RefreshCw className="w-5 h-5 animate-spin text-indigo-400 mr-2" />
+        <span>Loading compliance data...</span>
+      </div>
+    );
+  }
 
-  const { feeds, stats } = data;
+  if (error || !data || !data.feeds) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-center max-w-sm">
+          <AlertTriangle className="w-8 h-8 text-amber-400" />
+          <h3 className="text-sm font-semibold text-zinc-200">Unable to load compliance data</h3>
+          <p className="text-xs text-zinc-500">{error || "Could not retrieve feed scorecards."}</p>
+          <button
+            onClick={fetchFeeds}
+            className="mt-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-all flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Retry</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const feeds = data.feeds || [];
+  const stats = data.stats || {};
   const acpFeed = feeds.find((f: any) => f.protocol === "ACP") || feeds[0];
   const ucpFeed = feeds.find((f: any) => f.protocol === "UCP") || feeds[1];
 

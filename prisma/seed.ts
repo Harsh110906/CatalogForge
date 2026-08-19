@@ -1,6 +1,13 @@
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const derivedKey = crypto.pbkdf2Sync(password, salt, 10000, 64, "sha512").toString("hex");
+  return `${salt}:${derivedKey}`;
+}
 
 async function main() {
   console.log('🚀 Seeding Industrial Catalog Enrichment & Validation Workspace...');
@@ -71,31 +78,39 @@ async function main() {
     },
   });
 
-  // 3. Users (Personas)
+  // 3. Users with real secure password authentication
+  const adminHash = hashPassword('admin123');
+  const supplierHash = hashPassword('supplier123');
+  const editorHash = hashPassword('editor123');
+
   await prisma.user.createMany({
     data: [
       {
-        email: 'sarah.chen@global-industrial.com',
-        name: 'Sarah Chen (Admin)',
+        email: 'admin@catalogforge.com',
+        name: 'Workspace Administrator',
+        passwordHash: adminHash,
         role: 'ADMIN',
         organizationId: org.id,
       },
       {
-        email: 'marcus.vance@global-industrial.com',
-        name: 'Marcus Vance (Lead Editor)',
+        email: 'editor@catalogforge.com',
+        name: 'Lead Catalog Editor',
+        passwordHash: editorHash,
         role: 'EDITOR',
         organizationId: org.id,
       },
       {
-        email: 'elena@acme-electro.de',
-        name: 'Elena Rostova (Acme Supplier)',
+        email: 'supplier@acme.com',
+        name: 'Acme Supplier Representative',
+        passwordHash: supplierHash,
         role: 'SUPPLIER',
         organizationId: org.id,
         supplierId: supplierAcme.id,
       },
       {
-        email: 'david.kim@compliance-audit.org',
-        name: 'David Kim (Auditor & Viewer)',
+        email: 'viewer@compliance-audit.org',
+        name: 'Audit Compliance Viewer',
+        passwordHash: adminHash,
         role: 'VIEWER',
         organizationId: org.id,
       },

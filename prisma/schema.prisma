@@ -24,7 +24,8 @@ model User {
   clerkId        String?       @unique
   email          String        @unique
   name           String
-  role           String        @default("EDITOR") // ADMIN, EDITOR, SUPPLIER, VIEWER
+  passwordHash   String?
+  role           String        @default("ADMIN") // ADMIN, EDITOR, SUPPLIER, VIEWER
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   supplierId     String?

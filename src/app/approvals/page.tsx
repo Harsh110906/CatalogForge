@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { CheckSquare, Sparkles, CheckCircle2, Sliders, RefreshCw } from "lucide-react";
+import { CheckSquare, Sparkles, CheckCircle2, Sliders, RefreshCw, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 export default function ApprovalsPage() {
@@ -12,12 +12,25 @@ export default function ApprovalsPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const fetchQueue = async () => {
-    setLoading(true);
-    const res = await fetch(`/api/approval-queue?threshold=${threshold}`);
-    const json = await res.json();
-    if (json.success) setData(json);
-    setLoading(false);
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch(`/api/approval-queue?threshold=${threshold}`);
+      const json = await res.json();
+      if (json.success) {
+        setData(json);
+      } else {
+        setError(json.error || "Failed to load approval queue");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message || "Network error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchQueue(); }, [threshold]);
@@ -29,9 +42,36 @@ export default function ApprovalsPage() {
     setActionLoading(false);
   };
 
-  if (loading || !data) return <div className="flex items-center justify-center h-96 text-zinc-500"><RefreshCw className="w-5 h-5 animate-spin text-indigo-400 mr-2" />Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96 text-zinc-500">
+        <RefreshCw className="w-5 h-5 animate-spin text-indigo-400 mr-2" />
+        <span>Loading approval queue...</span>
+      </div>
+    );
+  }
 
-  const { reviewProducts, lowConfidenceFields } = data;
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-center max-w-sm">
+          <AlertTriangle className="w-8 h-8 text-amber-400" />
+          <h3 className="text-sm font-semibold text-zinc-200">Unable to load approval queue</h3>
+          <p className="text-xs text-zinc-500">{error || "Could not retrieve pending reviews."}</p>
+          <button
+            onClick={fetchQueue}
+            className="mt-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-all flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Retry</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const reviewProducts = data.reviewProducts || [];
+  const lowConfidenceFields = data.lowConfidenceFields || [];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">

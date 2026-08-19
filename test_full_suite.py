@@ -10,7 +10,7 @@ import sys
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-NEXT_URL = "http://localhost:3001"
+NEXT_URL = "http://localhost:3000"
 PY_URL = "http://localhost:8000"
 
 def get(url):
@@ -36,8 +36,26 @@ def run_suite():
     print("   CATALOGFORGE SYSTEM & HACKATHON VERIFICATION SUITE   ")
     print("==========================================================\n")
 
-    # 1. Next.js Analytics API
-    print("[1] Verifying Next.js Analytics (/api/analytics)...")
+    # 1. Authentication System
+    print("[1] Verifying Backend Authentication System (/api/auth)...")
+    login_resp = post_json(f"{NEXT_URL}/api/auth/login", {"email": "admin@catalogforge.com", "password": "admin123"})
+    assert login_resp.get("success") is True, f"Login failed: {login_resp}"
+    print(f"    ✓ Login Success: {login_resp['user']['name']} ({login_resp['user']['role']})")
+
+    import time
+    reg_email = f"lead_{int(time.time())}@enterprise.com"
+    reg_resp = post_json(f"{NEXT_URL}/api/auth/register", {
+        "name": "Jordan Reed",
+        "email": reg_email,
+        "password": "securepassword123",
+        "role": "ADMIN",
+        "organizationName": "ABB Automation Solutions"
+    })
+    assert reg_resp.get("success") is True, f"Register failed: {reg_resp}"
+    print(f"    ✓ Register Success: {reg_resp['user']['email']} ({reg_resp['user']['organizationName']})")
+
+    # 2. Next.js Analytics API
+    print("\n[2] Verifying Next.js Analytics (/api/analytics)...")
     analytics = get_json(f"{NEXT_URL}/api/analytics")
     assert analytics.get("success") is True
     metrics = analytics.get("metrics", {})
@@ -46,8 +64,8 @@ def run_suite():
     print(f"    ✓ Avg 2026 AI Visibility: {metrics.get('avgAgentVisibilityScore'):.1f}%")
     print(f"    ✓ Unresolved Issues: {metrics.get('unresolvedIssuesCount')}")
 
-    # 2. Products API
-    print("\n[2] Verifying Products API (/api/products)...")
+    # 3. Products API
+    print("\n[3] Verifying Products API (/api/products)...")
     prod_data = get_json(f"{NEXT_URL}/api/products")
     assert prod_data.get("success") is True
     products = prod_data.get("products", [])
@@ -90,9 +108,9 @@ def run_suite():
     feeds = feeds_data.get("feeds", [])
     print(f"    ✓ {len(feeds)} Feeds available (ACP & UCP)")
 
-    # 7. Web Pages Rendering Check
-    print("\n[7] Verifying Key Frontend Routes...")
-    routes = ["/", "/products", "/compliance", "/validation", "/suppliers", "/approvals", "/feeds", "/settings", "/ingestion", "/products/compare"]
+    # 8. Web Pages Rendering Check
+    print("\n[8] Verifying Key Frontend Routes...")
+    routes = ["/", "/login", "/register", "/products", "/compliance", "/validation", "/suppliers", "/approvals", "/feeds", "/settings", "/ingestion", "/products/compare"]
     for route in routes:
         s, _ = get(f"{NEXT_URL}{route}")
         assert s == 200, f"Route {route} returned status {s}"
