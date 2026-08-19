@@ -1,0 +1,183 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Organization {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  users     User[]
+  suppliers Supplier[]
+  products  Product[]
+  feeds     Feed[]
+}
+
+model User {
+  id             String        @id @default(cuid())
+  clerkId        String?       @unique
+  email          String        @unique
+  name           String
+  role           String        @default("EDITOR") // ADMIN, EDITOR, SUPPLIER, VIEWER
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplierId     String?
+  supplier       Supplier?     @relation(fields: [supplierId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Supplier {
+  id             String        @id @default(cuid())
+  name           String
+  code           String        @unique
+  contactEmail   String
+  qualityScore   Float         @default(75.0)
+  trustLevel     String        @default("STANDARD") // VERIFIED, STANDARD, PROBATION
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  products       Product[]
+  users          User[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Product {
+  id                   String            @id @default(cuid())
+  sku                  String            @unique
+  gtin                 String?           // Required for PUBLISHED status & ACP/UCP identity
+  title                String
+  description          String?
+  category             String
+  taxonomyCode         String?           // ETIM, eCl@ss, UNSPSC code
+  taxonomyStandard     String?           @default("ETIM") // ETIM, ECLASS, UNSPSC
+  brand                String?
+  price                Float?
+  currency             String            @default("USD")
+  availability         String            @default("in_stock") // in_stock, out_of_stock, preorder, backorder
+  condition            String            @default("new")
+  status               String            @default("DRAFT") // DRAFT, ENRICHING, REVIEW, APPROVED, PUBLISHED
+  completenessScore    Float             @default(0.0)
+  agentVisibilityScore Float             @default(0.0)
+  agentVisibilityTier  String            @default("INVISIBLE") // TRUSTED (>95%), PENALIZED (80-95%), INVISIBLE (<80%)
+  acpFillRate          Float             @default(0.0)
+  ucpFillRate          Float             @default(0.0)
+  acpData              String?           // JSON object with ACP protocol fields
+  ucpData              String?           // JSON object with UCP protocol fields
+  highlights           String?           // JSON array of 3-5 key highlight strings
+  qaPairs              String?           // JSON array of [{question: string, answer: string}]
+  attributes           String?           // JSON object of key-value technical attributes
+  images               String?           // JSON array of image URLs
+  isBenchmark          Boolean           @default(false) // Golden standard benchmark product in category
+  benchmarkDiff        String?           // JSON object storing comparison against category benchmark
+  organizationId       String
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplierId           String
+  supplier             Supplier          @relation(fields: [supplierId], references: [id])
+  attributeFields      AttributeField[]
+  validationIssues     ValidationIssue[]
+  auditLogs            AuditLog[]
+  versions             ProductVersion[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model AttributeField {
+  id              String    @id @default(cuid())
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  fieldName       String
+  value           String
+  unit            String?
+  confidenceScore Float     @default(100.0) // 0-100
+  source          String    @default("SUPPLIER_IMPORT") // HUMAN, AI_GENERATED, SUPPLIER_IMPORT
+  aiGenerated     Boolean   @default(false)
+  aiReasoning     String?
+  lastEditedBy    String    @default("System")
+  editedAt        DateTime  @default(now())
+}
+
+model ValidationIssue {
+  id           String    @id @default(cuid())
+  productId    String
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type         String    // ANOMALY, MISSING, MISMATCH, CROSS_FIELD
+  severity     String    // INFO, WARNING, ERROR, CRITICAL
+  fieldName    String?
+  message      String
+  suggestedFix String?
+  resolved     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  fieldName String
+  oldValue  String?
+  newValue  String?
+  changedBy String
+  reason    String
+  timestamp DateTime @default(now())
+}
+
+model ProductVersion {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  snapshot      String   // Full JSON snapshot of product + attributes at this version
+  createdBy     String
+  changeSummary String
+  createdAt     DateTime @default(now())
+}
+
+model Feed {
+  id              String               @id @default(cuid())
+  organizationId  String
+  organization    Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  protocol        String               // ACP, UCP
+  name            String
+  status          String               @default("ACTIVE") // ACTIVE, DRAFT, FAILED
+  lastPushedAt    DateTime?
+  fillRatePercent Float                @default(0.0)
+  itemsCount      Int                  @default(0)
+  exportFormat    String               @default("JSON") // JSON, CSV, JSON-LD
+  exportUrl       String?
+  deliveryJobs    FeedDeliveryJob[]
+  history         FeedExportHistory[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model FeedDeliveryJob {
+  id              String    @id @default(cuid())
+  feedId          String
+  feed            Feed      @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  status          String    @default("PENDING") // PENDING, SUCCESS, FAILED
+  triggeredBy     String
+  httpStatus      Int?
+  errorMessage    String?
+  responsePayload String?   // JSON response summary from simulated ACP/UCP agent registry
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+}
+
+model FeedExportHistory {
+  id              String    @id @default(cuid())
+  feedId          String
+  feed            Feed      @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  exportedAt      DateTime  @default(now())
+  fillRatePercent Float
+  itemsCount      Int
+  downloadUrl     String
+  generatedBy     String
+}
