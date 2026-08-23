@@ -10,25 +10,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Refined zinc-based dark palette
+        cbblue: {
+          DEFAULT: "#0052ff",
+          hover: "#0045d8",
+          light: "#e0eaff",
+          muted: "rgba(0, 82, 255, 0.08)",
+        },
         surface: {
-          primary: "#09090b",
-          secondary: "#111113",
-          tertiary: "#18181b",
-          elevated: "#1c1c1f",
-          hover: "#232326",
-          active: "#2a2a2e",
+          primary: "#ffffff",
+          secondary: "#f8fafc",
+          tertiary: "#f1f5f9",
+          elevated: "#ffffff",
+          hover: "#f1f5f9",
+          active: "#e2e8f0",
         },
         border: {
-          DEFAULT: "#27272a",
-          secondary: "#3f3f46",
-          hover: "#52525b",
+          DEFAULT: "#e2e8f0",
+          secondary: "#cbd5e1",
+          hover: "#94a3b8",
         },
         accent: {
-          DEFAULT: "#6366f1",
-          hover: "#818cf8",
-          muted: "rgba(99, 102, 241, 0.15)",
-          glow: "rgba(99, 102, 241, 0.08)",
+          DEFAULT: "#0052ff",
+          hover: "#0045d8",
+          muted: "rgba(0, 82, 255, 0.08)",
+          glow: "rgba(0, 82, 255, 0.04)",
         },
         success: {
           DEFAULT: "#10b981",
@@ -44,11 +49,12 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: "0.625rem",
+        lg: "0.75rem",
         md: "0.5rem",
         sm: "0.375rem",
-        xl: "0.75rem",
-        "2xl": "1rem",
+        xl: "1rem",
+        "2xl": "1.25rem",
+        full: "9999px",
       },
       fontFamily: {
         sans: ["'Inter'", "system-ui", "-apple-system", "sans-serif"],
@@ -63,8 +69,6 @@ const config: Config = {
         "fade-in-down": "fadeInDown 0.3s ease-out",
         "slide-in-right": "slideInRight 0.3s ease-out",
         "scale-in": "scaleIn 0.2s ease-out",
-        "shimmer": "shimmer 1.5s ease-in-out infinite",
-        "pulse-dot": "pulse-dot 2s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -86,14 +90,6 @@ const config: Config = {
         scaleIn: {
           "0%": { opacity: "0", transform: "scale(0.95)" },
           "100%": { opacity: "1", transform: "scale(1)" },
-        },
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
-        },
-        "pulse-dot": {
-          "0%, 100%": { opacity: "1", transform: "scale(1)" },
-          "50%": { opacity: "0.5", transform: "scale(0.85)" },
         },
       },
     },

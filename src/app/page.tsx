@@ -20,11 +20,16 @@ import {
 } from "lucide-react";
 import { formatPercent } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { PublicLandingPage } from "@/components/landing/PublicLandingPage";
 
 export default function DashboardPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, isAuthenticated } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  if (!isAuthenticated) {
+    return <PublicLandingPage />;
+  }
   const [error, setError] = useState<string | null>(null);
 
   const fetchAnalytics = async () => {

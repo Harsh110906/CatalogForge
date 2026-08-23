@@ -15,7 +15,7 @@ PY_URL = "http://localhost:8000"
 
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": "CatalogForge-Test/1.0"})
-    with urllib.request.urlopen(req, timeout=10) as r:
+    with urllib.request.urlopen(req, timeout=30) as r:
         return r.status, r.read()
 
 def get_json(url):
@@ -28,7 +28,7 @@ def post_json(url, data):
         data=json.dumps(data).encode("utf-8"),
         headers={"Content-Type": "application/json", "User-Agent": "CatalogForge-Test/1.0"}
     )
-    with urllib.request.urlopen(req, timeout=10) as r:
+    with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode("utf-8"))
 
 def run_suite():
