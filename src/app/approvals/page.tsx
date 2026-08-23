@@ -11,7 +11,6 @@ export default function ApprovalsPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-
   const [error, setError] = useState<string | null>(null);
 
   const fetchQueue = async () => {
@@ -33,19 +32,25 @@ export default function ApprovalsPage() {
     }
   };
 
-  useEffect(() => { fetchQueue(); }, [threshold]);
+  useEffect(() => {
+    fetchQueue();
+  }, [threshold]);
 
   const handleAction = async (action: string, productIds?: string[], fieldIds?: string[]) => {
     setActionLoading(true);
-    await fetch("/api/approval-queue/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, productIds, fieldIds, approvedBy: currentUser.name }) });
+    await fetch("/api/approval-queue/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, productIds, fieldIds, approvedBy: currentUser.name }),
+    });
     await fetchQueue();
     setActionLoading(false);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 text-zinc-500">
-        <RefreshCw className="w-5 h-5 animate-spin text-indigo-400 mr-2" />
+      <div className="flex items-center justify-center h-[60vh] text-slate-500">
+        <RefreshCw className="w-5 h-5 animate-spin text-[#0052ff] mr-2" />
         <span>Loading approval queue...</span>
       </div>
     );
@@ -53,14 +58,14 @@ export default function ApprovalsPage() {
 
   if (error || !data) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-center max-w-sm">
-          <AlertTriangle className="w-8 h-8 text-amber-400" />
-          <h3 className="text-sm font-semibold text-zinc-200">Unable to load approval queue</h3>
-          <p className="text-xs text-zinc-500">{error || "Could not retrieve pending reviews."}</p>
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-3 p-8 rounded-3xl bg-white border border-slate-200 text-center max-w-sm shadow-xl">
+          <AlertTriangle className="w-8 h-8 text-amber-500" />
+          <h3 className="text-base font-bold text-slate-900">Unable to load approval queue</h3>
+          <p className="text-xs text-slate-500">{error || "Could not retrieve pending reviews."}</p>
           <button
             onClick={fetchQueue}
-            className="mt-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-all flex items-center gap-1.5"
+            className="mt-2 px-5 py-2.5 rounded-full bg-[#0052ff] hover:bg-[#0045d8] text-xs font-semibold text-white transition-all flex items-center gap-1.5 shadow-md"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Retry</span>
@@ -74,55 +79,85 @@ export default function ApprovalsPage() {
   const lowConfidenceFields = data.lowConfidenceFields || [];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-100">Approval Queue</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Review AI-enriched fields below the confidence threshold</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Approval Queue</h1>
+          <p className="text-sm text-slate-500 mt-1">Review AI-enriched fields below the confidence threshold</p>
         </div>
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/50">
-          <Sliders className="w-4 h-4 text-indigo-400" />
+        <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+          <Sliders className="w-4 h-4 text-[#0052ff]" />
           <div>
-            <div className="flex items-center justify-between text-xs text-zinc-400 gap-4">
+            <div className="flex items-center justify-between text-xs text-slate-600 font-semibold gap-4">
               <span>Confidence Threshold</span>
-              <span className="font-mono text-indigo-400 font-medium">{threshold.toFixed(0)}%</span>
+              <span className="font-mono text-[#0052ff] font-extrabold">{threshold.toFixed(0)}%</span>
             </div>
-            <input type="range" min="70" max="98" step="1" value={threshold} onChange={(e) => setThreshold(parseFloat(e.target.value))}
-              className="w-32 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 mt-1" />
+            <input
+              type="range"
+              min="70"
+              max="98"
+              step="1"
+              value={threshold}
+              onChange={(e) => setThreshold(parseFloat(e.target.value))}
+              className="w-32 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#0052ff] mt-1"
+            />
           </div>
         </div>
       </div>
 
-      {/* Review Products */}
-      <div className="p-5 rounded-xl bg-zinc-900/50 border border-zinc-800/50 space-y-3">
+      {/* Review Products Card */}
+      <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-zinc-200">Products Awaiting Review ({reviewProducts.length})</h2>
+          <h2 className="text-sm font-bold text-slate-900">Products Awaiting Review ({reviewProducts.length})</h2>
           {canApprove && reviewProducts.length > 0 && (
-            <button onClick={() => handleAction("approve", reviewProducts.map((p: any) => p.id))} disabled={actionLoading}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-medium text-white">
+            <button
+              onClick={() => handleAction("approve", reviewProducts.map((p: any) => p.id))}
+              disabled={actionLoading}
+              className="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 transition-all disabled:opacity-50"
+            >
               Approve All
             </button>
           )}
         </div>
 
         {reviewProducts.length === 0 ? (
-          <div className="py-8 text-center"><CheckCircle2 className="w-6 h-6 text-emerald-500/40 mx-auto mb-2" /><p className="text-sm text-zinc-500">All products approved</p></div>
+          <div className="py-8 text-center space-y-1">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+            <p className="text-xs font-bold text-slate-900">All products approved</p>
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {reviewProducts.map((p: any) => (
-              <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/30 border border-zinc-800/40">
+              <div
+                key={p.id}
+                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:border-slate-300 transition-all"
+              >
                 <div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Link href={`/products/${p.id}`} className="font-mono text-indigo-400 hover:underline text-xs">{p.sku}</Link>
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">REVIEW</span>
-                    <span className="text-zinc-400 text-xs truncate max-w-sm">{p.title}</span>
+                  <div className="flex items-center gap-2.5 text-xs">
+                    <Link href={`/products/${p.id}`} className="font-mono font-bold text-[#0052ff] hover:underline">
+                      {p.sku}
+                    </Link>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                      REVIEW
+                    </span>
+                    <span className="text-slate-800 font-semibold truncate max-w-sm">{p.title}</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleAction("approve", [p.id])} disabled={actionLoading}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs text-white">Approve</button>
-                  <Link href={`/products/${p.id}`} className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-400 border border-zinc-700/60">Inspect</Link>
+                  <button
+                    onClick={() => handleAction("approve", [p.id])}
+                    disabled={actionLoading}
+                    className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition-all shadow-xs"
+                  >
+                    Approve
+                  </button>
+                  <Link
+                    href={`/products/${p.id}`}
+                    className="px-4 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-semibold text-slate-700 transition-all"
+                  >
+                    Inspect
+                  </Link>
                 </div>
               </div>
             ))}
@@ -130,41 +165,56 @@ export default function ApprovalsPage() {
         )}
       </div>
 
-      {/* Low Confidence Fields */}
-      <div className="p-5 rounded-xl bg-zinc-900/50 border border-zinc-800/50 space-y-3">
+      {/* Low Confidence Fields Card */}
+      <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
+          <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#0052ff]" />
             AI Fields Below {threshold.toFixed(0)}% Confidence ({lowConfidenceFields.length})
           </h2>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-zinc-800/50">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/80">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-zinc-800/50 text-zinc-500 text-xs uppercase tracking-wider">
-                <th className="p-3">SKU</th>
-                <th className="p-3">Field</th>
-                <th className="p-3">AI Value</th>
-                <th className="p-3">Confidence</th>
-                <th className="p-3 text-right">Action</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                <th className="p-3.5">SKU</th>
+                <th className="p-3.5">Field</th>
+                <th className="p-3.5">AI Value</th>
+                <th className="p-3.5">Confidence</th>
+                <th className="p-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/30">
+            <tbody className="divide-y divide-slate-100 font-medium">
               {lowConfidenceFields.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-zinc-500">No fields below threshold</td></tr>
-              ) : lowConfidenceFields.map((f: any) => (
-                <tr key={f.id} className="hover:bg-zinc-800/20">
-                  <td className="p-3 font-mono text-xs text-zinc-400">{f.product?.sku}</td>
-                  <td className="p-3 text-indigo-400 font-mono text-xs">{f.fieldName}</td>
-                  <td className="p-3 text-zinc-300 text-sm">{f.value}</td>
-                  <td className="p-3"><span className="text-[11px] font-medium px-2 py-1 rounded bg-amber-500/10 text-amber-400 font-mono">{f.confidenceScore.toFixed(0)}%</span></td>
-                  <td className="p-3 text-right">
-                    <button onClick={() => handleAction("approve", undefined, [f.id])} disabled={actionLoading}
-                      className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-xs text-white">Accept</button>
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-400">
+                    No fields below threshold.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                lowConfidenceFields.map((f: any) => (
+                  <tr key={f.id} className="hover:bg-slate-50/80">
+                    <td className="p-3.5 font-mono font-bold text-slate-900">{f.product?.sku}</td>
+                    <td className="p-3.5 text-[#0052ff] font-mono font-bold">{f.fieldName}</td>
+                    <td className="p-3.5 text-slate-800">{f.value}</td>
+                    <td className="p-3.5">
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-mono">
+                        {f.confidenceScore.toFixed(0)}%
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <button
+                        onClick={() => handleAction("approve", undefined, [f.id])}
+                        disabled={actionLoading}
+                        className="px-4 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition-all shadow-xs"
+                      >
+                        Accept
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

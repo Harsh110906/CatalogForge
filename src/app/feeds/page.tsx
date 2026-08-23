@@ -23,11 +23,17 @@ export default function FeedsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
   const handlePush = async (feedId: string) => {
     setPushingId(feedId);
-    const res = await fetch(`/api/feeds/${feedId}/push`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ triggeredBy: currentUser.name }) });
+    const res = await fetch(`/api/feeds/${feedId}/push`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ triggeredBy: currentUser.name }),
+    });
     const json = await res.json();
     await fetchAll();
     if (json.job) setSelectedJob(json.job);
@@ -35,49 +41,56 @@ export default function FeedsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 font-sans">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-100">Feeds & Delivery</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Export and push catalogs to ACP & UCP agent registries</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Feeds & Delivery</h1>
+          <p className="text-sm text-slate-500 mt-1">Export and push catalogs to ACP & UCP agent registries</p>
         </div>
       </div>
 
       {/* Feed Cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {feeds.map((feed) => {
           const isAcp = feed.protocol === "ACP";
           return (
-            <div key={feed.id} className="p-5 rounded-xl bg-zinc-900/50 border border-zinc-800/50 card-hover space-y-4">
+            <div key={feed.id} className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-lg ${isAcp ? "bg-indigo-500/10 text-indigo-400" : "bg-emerald-500/10 text-emerald-400"}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${isAcp ? "bg-blue-50 text-[#0052ff]" : "bg-emerald-50 text-emerald-600"}`}>
                     {isAcp ? <Bot className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-zinc-200">{feed.name}</h3>
-                    <div className="text-xs text-zinc-500 mt-0.5">
-                      Protocol: <span className="text-zinc-300 font-medium">{feed.protocol}</span> · {feed.itemsCount} SKUs
+                    <h3 className="text-base font-bold text-slate-900">{feed.name}</h3>
+                    <div className="text-xs text-slate-500 font-medium mt-0.5">
+                      Protocol: <span className="text-slate-900 font-bold">{feed.protocol}</span> · {feed.itemsCount} SKUs
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold font-mono text-indigo-400">{formatPercent(feed.fillRatePercent)}</div>
-                  <div className="text-[10px] text-zinc-500">Fill Rate</div>
+                  <div className="text-xl font-extrabold font-mono text-[#0052ff]">{formatPercent(feed.fillRatePercent)}</div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">Fill Rate</div>
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-zinc-800/40 border border-zinc-800/50 flex items-center justify-between">
-                <div className="text-xs text-zinc-500">
-                  Last pushed: <span className="text-zinc-400">{feed.lastPushedAt ? new Date(feed.lastPushedAt).toLocaleDateString() : "Never"}</span>
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-between">
+                <div className="text-xs text-slate-500 font-medium">
+                  Last pushed: <span className="text-slate-800 font-semibold">{feed.lastPushedAt ? new Date(feed.lastPushedAt).toLocaleDateString() : "Never"}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <a href={`/api/feeds/${feed.id}/download?format=json`} download className="px-2.5 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-400 border border-zinc-700/60 flex items-center gap-1">
-                    <Download className="w-3 h-3" /> JSON
+                  <a
+                    href={`/api/feeds/${feed.id}/download?format=json`}
+                    download
+                    className="px-4 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-xs font-semibold text-slate-700 transition-all flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" /> JSON
                   </a>
-                  <button onClick={() => handlePush(feed.id)} disabled={pushingId === feed.id}
-                    className="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white flex items-center gap-1.5 disabled:opacity-50">
-                    <Send className={`w-3 h-3 ${pushingId === feed.id ? "animate-spin" : ""}`} /> Push
+                  <button
+                    onClick={() => handlePush(feed.id)}
+                    disabled={pushingId === feed.id}
+                    className="px-4 py-1.5 rounded-full bg-[#0052ff] hover:bg-[#0045d8] text-xs font-semibold text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <Send className={`w-3.5 h-3.5 ${pushingId === feed.id ? "animate-spin" : ""}`} /> Push
                   </button>
                 </div>
               </div>
@@ -86,60 +99,46 @@ export default function FeedsPage() {
         })}
       </div>
 
-      {/* Delivery Jobs */}
-      <div className="p-5 rounded-xl bg-zinc-900/50 border border-zinc-800/50 space-y-3">
-        <h2 className="text-sm font-semibold text-zinc-200">Delivery History</h2>
-        <div className="overflow-x-auto rounded-lg border border-zinc-800/50">
-          <table className="w-full text-left text-sm">
+      {/* Delivery History Card */}
+      <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+        <h2 className="text-sm font-bold text-slate-900">Delivery History</h2>
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/80">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-zinc-800/50 text-zinc-500 text-xs uppercase tracking-wider">
-                <th className="p-3">Job</th>
-                <th className="p-3">Protocol</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Triggered By</th>
-                <th className="p-3">Date</th>
-                <th className="p-3 text-right">Details</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                <th className="p-3.5">Job ID</th>
+                <th className="p-3.5">Status</th>
+                <th className="p-3.5">HTTP Code</th>
+                <th className="p-3.5">Triggered By</th>
+                <th className="p-3.5">Timestamp</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/30">
+            <tbody className="divide-y divide-slate-100 font-medium">
               {jobs.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-zinc-500">No delivery jobs yet</td></tr>
-              ) : jobs.map((job) => (
-                <tr key={job.id} className="hover:bg-zinc-800/20">
-                  <td className="p-3 font-mono text-xs text-zinc-400">#{job.id.slice(-8)}</td>
-                  <td className="p-3 text-zinc-300">{job.feed?.protocol || "—"}</td>
-                  <td className="p-3">
-                    <span className={`text-[11px] font-medium px-2 py-1 rounded ${job.status === "SUCCESS" ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>{job.status}</span>
-                  </td>
-                  <td className="p-3 text-zinc-400">{job.triggeredBy}</td>
-                  <td className="p-3 text-xs text-zinc-500">{new Date(job.startedAt).toLocaleDateString()}</td>
-                  <td className="p-3 text-right">
-                    {job.responsePayload && (
-                      <button onClick={() => setSelectedJob(job)} className="text-xs text-indigo-400 hover:underline">View JSON</button>
-                    )}
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-400">
+                    No recent feed delivery jobs recorded.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                jobs.map((job) => (
+                  <tr key={job.id} className="hover:bg-slate-50/80">
+                    <td className="p-3.5 font-mono font-bold text-slate-900">#{job.id.slice(-8)}</td>
+                    <td className="p-3.5">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${job.status === "SUCCESS" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-rose-50 text-rose-700 border border-rose-200"}`}>
+                        {job.status}
+                      </span>
+                    </td>
+                    <td className="p-3.5 font-mono font-bold text-slate-800">{job.httpStatus || 200}</td>
+                    <td className="p-3.5 text-slate-700">{job.triggeredBy}</td>
+                    <td className="p-3.5 text-slate-500 font-mono">{new Date(job.startedAt).toLocaleString()}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* Modal */}
-      {selectedJob && (
-        <>
-          <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm" onClick={() => setSelectedJob(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl p-5 z-50 shadow-2xl animate-scaleIn space-y-3">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-              <h3 className="text-sm font-semibold text-zinc-200">Response Payload</h3>
-              <button onClick={() => setSelectedJob(null)} className="text-zinc-500 hover:text-zinc-300 text-sm">✕</button>
-            </div>
-            <pre className="p-3 rounded-lg bg-zinc-950 font-mono text-xs text-zinc-400 overflow-y-auto max-h-64">
-              {JSON.stringify(JSON.parse(selectedJob.responsePayload || "{}"), null, 2)}
-            </pre>
-          </div>
-        </>
-      )}
     </div>
   );
 }

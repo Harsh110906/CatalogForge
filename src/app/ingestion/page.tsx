@@ -99,8 +99,8 @@ WAG-221-415-LEVER,4050821808466,WAGO 221 Splicing Connector 5-Wire,WAGO,1.20,450
         body: JSON.stringify({
           rawRows: rawData,
           mappings,
-          supplierId: isSupplier && currentUser.supplierId ? currentUser.supplierId : selectedSupplierId,
-          requestedBy: currentUser.name,
+          supplierId: selectedSupplierId || currentUser.supplierId,
+          importedBy: currentUser.name,
         }),
       });
       const json = await res.json();
@@ -108,37 +108,37 @@ WAG-221-415-LEVER,4050821808466,WAGO 221 Splicing Connector 5-Wire,WAGO,1.20,450
         setImportResult(json);
         setStep(3);
       } else {
-        alert(`Commit error: ${json.error}`);
+        alert(`Import error: ${json.error}`);
       }
     } catch (e: any) {
-      alert(`Commit failed: ${e.message}`);
+      alert(`Commit error: ${e.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-100">Multi-Supplier Ingestion Hub</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Multi-Supplier Ingestion Hub</h1>
+          <p className="text-sm text-slate-500 mt-1">
             Ingest raw CSV/Excel supplier catalogs with automated Gemini AI field mapping and validation
           </p>
         </div>
 
         {/* Step Indicator */}
-        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 p-1 rounded-lg text-xs">
-          <span className={`px-2.5 py-1 rounded-md font-medium transition-all ${step === 1 ? "bg-indigo-600 text-white shadow-sm" : "text-zinc-500"}`}>
+        <div className="flex items-center gap-1 bg-white border border-slate-200 p-1.5 rounded-full text-xs font-semibold shadow-2xs">
+          <span className={`px-3 py-1 rounded-full transition-all ${step === 1 ? "bg-[#0052ff] text-white shadow-xs" : "text-slate-400"}`}>
             1. Upload
           </span>
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-          <span className={`px-2.5 py-1 rounded-md font-medium transition-all ${step === 2 ? "bg-indigo-600 text-white shadow-sm" : "text-zinc-500"}`}>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className={`px-3 py-1 rounded-full transition-all ${step === 2 ? "bg-[#0052ff] text-white shadow-xs" : "text-slate-400"}`}>
             2. AI Mapping
           </span>
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-          <span className={`px-2.5 py-1 rounded-md font-medium transition-all ${step === 3 ? "bg-emerald-600 text-white shadow-sm" : "text-zinc-500"}`}>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className={`px-3 py-1 rounded-full transition-all ${step === 3 ? "bg-emerald-600 text-white shadow-xs" : "text-slate-400"}`}>
             3. Summary
           </span>
         </div>
@@ -147,19 +147,19 @@ WAG-221-415-LEVER,4050821808466,WAGO 221 Splicing Connector 5-Wire,WAGO,1.20,450
       {/* STEP 1: Upload */}
       {step === 1 && (
         <div className="space-y-6 animate-fadeIn">
-          <div className="p-10 rounded-2xl bg-zinc-900/40 border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 transition-all text-center space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto">
-              <Upload className="w-6 h-6" />
+          <div className="p-12 rounded-3xl bg-white border-2 border-dashed border-blue-200 hover:border-[#0052ff] transition-all text-center space-y-5 shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-blue-50 text-[#0052ff] flex items-center justify-center mx-auto text-xl shadow-xs">
+              <Upload className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-zinc-200">Upload Supplier Catalog Spreadsheet</h3>
-              <p className="text-xs text-zinc-500 mt-1 max-w-md mx-auto">
+              <h3 className="text-lg font-bold text-slate-900">Upload Supplier Catalog Spreadsheet</h3>
+              <p className="text-xs text-slate-500 mt-1.5 max-w-md mx-auto leading-relaxed font-normal">
                 Upload CSV or TSV supplier catalogs. Our AI automatically identifies columns, resolves ETIM standards, and scores confidence.
               </p>
             </div>
 
-            <div className="pt-3 flex items-center justify-center gap-3">
-              <label className="px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 cursor-pointer transition-all inline-flex items-center gap-2">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <label className="px-6 py-3 rounded-full bg-[#0052ff] hover:bg-[#0045d8] text-xs font-semibold text-white shadow-md shadow-blue-500/20 cursor-pointer transition-all inline-flex items-center gap-2">
                 <Upload className="w-4 h-4" />
                 <span>Select File from Computer</span>
                 <input
@@ -182,15 +182,15 @@ WAG-221-415-LEVER,4050821808466,WAGO 221 Splicing Connector 5-Wire,WAGO,1.20,450
               <button
                 onClick={() => handleFileUpload(sampleCsvData, "sample_industrial_catalog.csv")}
                 disabled={loading}
-                className="px-4 py-2.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 text-sm font-medium text-zinc-300 border border-zinc-700/60 transition-colors inline-flex items-center gap-2"
+                className="px-6 py-3 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 border border-slate-200 transition-all inline-flex items-center gap-2"
               >
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <Sparkles className="w-4 h-4 text-[#0052ff]" />
                 <span>Load Sample Supplier CSV (5 SKUs)</span>
               </button>
             </div>
 
             {loading && (
-              <div className="pt-2 text-xs text-indigo-400 flex items-center justify-center gap-2">
+              <div className="pt-3 text-xs text-[#0052ff] font-semibold flex items-center justify-center gap-2">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>Analyzing CSV columns and schema taxonomy...</span>
               </div>
@@ -202,147 +202,108 @@ WAG-221-415-LEVER,4050821808466,WAGO 221 Splicing Connector 5-Wire,WAGO,1.20,450
       {/* STEP 2: AI Column Mapping */}
       {step === 2 && (
         <div className="space-y-5 animate-fadeIn">
-          <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 flex items-center justify-between">
+          <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-                <FileText className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-[#0052ff] flex items-center justify-center font-bold">
+                <FileText className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-zinc-200 font-mono">{filename}</div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-sm font-bold text-slate-900 font-mono">{filename}</div>
+                <div className="text-xs text-slate-500 font-medium">
                   {headers.length} Source Columns · {rawData.length} Product Rows
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setStep(1)}
-                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 border border-zinc-700/60 transition-colors"
+                className="px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 transition-all"
               >
                 Back
               </button>
               <button
                 onClick={handleCommitImport}
                 disabled={loading}
-                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-lg shadow-emerald-600/20 flex items-center gap-1.5 transition-all"
+                className="px-6 py-2 rounded-full bg-[#0052ff] hover:bg-[#0045d8] text-xs font-semibold text-white shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
               >
-                <span>Commit Catalog Ingestion</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                {loading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <span>Commit Import</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {/* Mapping Table */}
-          <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 overflow-hidden shadow-lg">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-zinc-800/60 text-zinc-500 text-xs uppercase tracking-wider">
-                  <th className="p-3.5">Source Header</th>
-                  <th className="p-3.5">Sample Values</th>
-                  <th className="p-3.5">Target Field</th>
-                  <th className="p-3.5">AI Confidence</th>
-                  <th className="p-3.5">Reasoning</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/40">
-                {mappings.map((m, idx) => (
-                  <tr key={idx} className="hover:bg-zinc-800/30 transition-colors">
-                    <td className="p-3.5 font-mono text-xs font-semibold text-zinc-200">{m.sourceHeader}</td>
-                    <td className="p-3.5 font-mono text-zinc-400 text-xs max-w-xs truncate">
-                      {m.sampleValues?.join(" | ") || "—"}
-                    </td>
-                    <td className="p-3.5">
-                      <select
-                        value={m.targetField}
-                        onChange={(e) => handleMappingChange(idx, e.target.value)}
-                        className="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 font-mono focus:outline-none focus:border-indigo-500"
-                      >
-                        <option value="sku">sku (SKU / Part Number) *</option>
-                        <option value="gtin">gtin (GTIN Barcode GS1) *</option>
-                        <option value="title">title (Product Name) *</option>
-                        <option value="description">description (Overview)</option>
-                        <option value="brand">brand (Manufacturer) *</option>
-                        <option value="price">price (Unit Price USD) *</option>
-                        <option value="category">category (Product Type)</option>
-                        <option value="voltage_rating">voltage_rating (Rated Voltage)</option>
-                        <option value="current_rating">current_rating (Amperage)</option>
-                        <option value="dimensions">dimensions (Dimensions)</option>
-                        <option value="weight">weight (Mass / Weight)</option>
-                        <option value="ip_rating">ip_rating (IP Protection)</option>
-                        <option value={`attr_${m.sourceHeader.toLowerCase()}`}>
-                          attr_{m.sourceHeader.toLowerCase()} (Custom Spec)
+          {/* Mappings Table Card */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+            <h3 className="font-bold text-slate-900 text-sm">AI Field Mapping Review</h3>
+            <div className="space-y-3">
+              {mappings.map((m, idx) => (
+                <div
+                  key={m.sourceHeader}
+                  className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                >
+                  <div className="space-y-1">
+                    <div className="font-mono text-xs font-bold text-slate-900">{m.sourceHeader}</div>
+                    <div className="text-[11px] text-slate-500 truncate max-w-xs font-mono">
+                      Sample: {sampleRows[0]?.[m.sourceHeader] || "N/A"}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <span className="text-slate-400">→</span>
+                    <select
+                      value={m.targetField}
+                      onChange={(e) => handleMappingChange(idx, e.target.value)}
+                      className="px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#0052ff]"
+                    >
+                      {canonicalFields.map((cf: any) => (
+                        <option key={cf.name} value={cf.name}>
+                          {cf.label} ({cf.name})
                         </option>
-                      </select>
-                    </td>
-                    <td className="p-3.5">
-                      <span className="px-2 py-1 rounded text-xs font-mono font-medium bg-indigo-500/10 text-indigo-400">
-                        {m.confidenceScore}%
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-zinc-400 text-xs max-w-xs">{m.aiReasoning}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      ))}
+                    </select>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
+                      {m.confidenceScore}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* STEP 3: Summary */}
       {step === 3 && importResult && (
-        <div className="p-6 rounded-xl bg-zinc-900/60 border border-zinc-800 shadow-xl space-y-5 animate-fadeIn">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-zinc-100">Catalog Batch Ingestion Completed</h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
-                Successfully processed and mapped raw supplier rows into structured catalog product records.
-              </p>
-            </div>
+        <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm text-center space-y-6 animate-fadeIn">
+          <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto text-2xl font-bold">
+            ✓
+          </div>
+          <div>
+            <h2 className="text-xl font-extrabold text-slate-900">Catalog Ingestion Successful!</h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Imported {importResult.importedCount} products into the workspace queue.
+            </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-              <span className="text-xs uppercase text-zinc-500">Imported Records</span>
-              <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">{importResult.importedCount}</div>
-            </div>
-            <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-              <span className="text-xs uppercase text-zinc-500">Skipped (Duplicates)</span>
-              <div className="text-2xl font-bold font-mono text-zinc-400 mt-1">{importResult.skippedCount}</div>
-            </div>
-            <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-              <span className="text-xs uppercase text-zinc-500">Total Rows</span>
-              <div className="text-2xl font-bold font-mono text-indigo-400 mt-1">{importResult.totalRows}</div>
-            </div>
-          </div>
-
-          {importResult.errors && importResult.errors.length > 0 && (
-            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 space-y-1">
-              <div className="font-semibold">Ingestion Notices:</div>
-              {importResult.errors.map((err: string, i: number) => (
-                <div key={i} className="text-xs text-amber-400 font-mono">
-                  • {err}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-4 pt-4">
             <Link
               href="/products"
-              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all inline-flex items-center gap-2"
+              className="px-6 py-2.5 rounded-full bg-[#0052ff] hover:bg-[#0045d8] text-xs font-semibold text-white shadow-md shadow-blue-500/20 transition-all"
             >
-              <Boxes className="w-4 h-4" />
-              <span>View Ingested Products</span>
+              View Products
             </Link>
             <button
               onClick={() => setStep(1)}
-              className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm text-zinc-300 border border-zinc-700/60 transition-colors"
+              className="px-6 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 transition-all"
             >
-              Ingest Another File
+              Upload Another CSV
             </button>
           </div>
         </div>

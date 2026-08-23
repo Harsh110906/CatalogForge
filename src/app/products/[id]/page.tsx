@@ -292,28 +292,28 @@ export default function ProductDetailPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/products"
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
+            className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-bold text-slate-400">SKU:</span>
-              <span className="text-sm font-mono font-bold text-slate-100">{product.sku}</span>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${getStatusBadge(status)}`}>
+              <span className="text-base font-mono font-extrabold text-slate-900">{product.sku}</span>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${getStatusBadge(status)}`}>
                 {status}
               </span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold inline-flex items-center gap-1 ${tierBadge.color}`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${tierBadge.color}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${tierBadge.dot}`} />
                 {tierBadge.label}
               </span>
               {isBenchmark && (
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200">
                   ★ GOLDEN BENCHMARK
                 </span>
               )}
             </div>
-            <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+            <div className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-2">
               <span>{product.category}</span>
               <span>·</span>
               <span>Supplier: {product.supplier?.name}</span>
@@ -325,10 +325,10 @@ export default function ProductDetailPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={toggleBenchmark}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${
               isBenchmark
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                : "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700"
+                ? "bg-amber-50 text-amber-700 border-amber-200"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
             }`}
           >
             ★ {isBenchmark ? "Golden Benchmark Active" : "Set as Golden Benchmark"}
@@ -337,7 +337,7 @@ export default function ProductDetailPage() {
           <button
             onClick={handleTriggerEnrichment}
             disabled={isEnriching}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/90 hover:bg-indigo-500 text-xs font-semibold text-white shadow-md transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0052ff] hover:bg-[#0045d8] text-xs font-semibold text-white shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
           >
             <Sparkles className={`w-3.5 h-3.5 ${isEnriching ? "animate-spin" : ""}`} />
             <span>AI Enrich (Gemini)</span>
@@ -346,16 +346,16 @@ export default function ProductDetailPage() {
           <button
             onClick={handleTriggerValidation}
             disabled={isValidating}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 border border-slate-200 transition-all disabled:opacity-50"
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
             <span>Validate Rules</span>
           </button>
 
           <button
             onClick={handleTriggerAutofill}
             disabled={isAutofilling}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-900/80 hover:bg-indigo-800 text-xs font-medium text-indigo-200 border border-indigo-500/40 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-50 hover:bg-blue-100 text-xs font-semibold text-[#0052ff] border border-blue-200 transition-all disabled:opacity-50"
           >
             <Bot className="w-3.5 h-3.5" />
             <span>Auto-Fill ACP/UCP</span>
@@ -365,7 +365,7 @@ export default function ProductDetailPage() {
             <button
               onClick={() => handleSave("PUBLISHED")}
               disabled={isSaving}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white shadow-md transition-all"
             >
               <Check className="w-3.5 h-3.5" />
               <span>Publish</span>
@@ -375,7 +375,7 @@ export default function ProductDetailPage() {
           <button
             onClick={() => handleSave()}
             disabled={isSaving}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0052ff] hover:bg-[#0045d8] text-xs font-semibold text-white shadow-md shadow-blue-500/20 transition-all"
           >
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? "Saving..." : "Save Changes"}</span>
@@ -424,7 +424,7 @@ export default function ProductDetailPage() {
       )}
 
       {/* Navigation Tabs */}
-      <div className="border-b border-slate-800 flex items-center gap-1">
+      <div className="border-b border-slate-200 flex items-center gap-2">
         {[
           { id: "overview", label: "Overview & Commercial", icon: Boxes },
           { id: "attributes", label: "Technical Attributes", icon: Layers, badge: Object.keys(attributes).length },
@@ -439,16 +439,16 @@ export default function ProductDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-2xl transition-all ${
                 isActive
-                  ? "border-indigo-500 text-indigo-300 bg-indigo-500/10 rounded-t-lg"
-                  : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+                  ? "bg-[#0052ff] text-white shadow-md shadow-blue-500/20"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-indigo-400" : "text-slate-400"}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-slate-400"}`} />
               <span>{tab.label}</span>
               {tab.badge !== undefined && (
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 border border-slate-200"}`}>
                   {tab.badge}
                 </span>
               )}
@@ -460,50 +460,50 @@ export default function ProductDetailPage() {
       {/* Tab 1: Overview & Commercial */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4 p-5 rounded-xl bg-slate-900/70 border border-slate-800 shadow-md">
+          <div className="lg:col-span-2 space-y-5 p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Product Title</label>
+              <label className="block text-xs font-bold text-slate-900 mb-1.5">Product Title</label>
               <textarea
                 rows={2}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-sans"
+                className="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#0052ff] font-sans font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Technical Overview & Description</label>
+              <label className="block text-xs font-bold text-slate-900 mb-1.5">Technical Overview & Description</label>
               <textarea
                 rows={5}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-sans leading-relaxed"
+                className="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#0052ff] font-sans font-medium leading-relaxed"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Manufacturer / Brand</label>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">Manufacturer / Brand</label>
                 <input
                   type="text"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
-                  className="w-full p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="w-full p-3 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#0052ff] font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  GTIN-13 Barcode <span className="text-rose-400 font-bold">* (Mandatory for Publish)</span>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">
+                  GTIN-13 Barcode <span className="text-rose-600 font-bold">* (Mandatory for Publish)</span>
                 </label>
                 <div className="relative">
-                  <Barcode className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Barcode className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     value={gtin}
                     onChange={(e) => setGtin(e.target.value)}
                     placeholder="e.g. 4016779464208"
-                    className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full pl-10 pr-4 py-3 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:bg-white focus:border-[#0052ff]"
                   />
                 </div>
               </div>
@@ -511,22 +511,22 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Price</label>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">Price</label>
                 <input
                   type="number"
                   step="0.01"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"
+                  className="w-full p-3 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:bg-white focus:border-[#0052ff]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Currency</label>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">Currency</label>
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  className="w-full p-3 rounded-full bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:bg-white focus:border-[#0052ff]"
                 >
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
@@ -535,13 +535,13 @@ export default function ProductDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">ETIM Taxonomy Code</label>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5">ETIM Taxonomy Code</label>
                 <input
                   type="text"
                   value={taxonomyCode}
                   onChange={(e) => setTaxonomyCode(e.target.value)}
                   placeholder="e.g. EC000042"
-                  className="w-full p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"
+                  className="w-full p-3 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:bg-white focus:border-[#0052ff]"
                 />
               </div>
             </div>
