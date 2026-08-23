@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Zap, Lock, Mail, User, Building2, Shield, ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
-export default function RegisterPage() {
+export const dynamic = "force-dynamic";
+
+function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { register } = useAuth();
@@ -188,5 +190,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400 text-sm">Loading registration...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

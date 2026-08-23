@@ -16,7 +16,9 @@ const SUGGESTIONS = [
   "What's the ACP fill rate average?",
 ];
 
-export function AIChatPanel({ onClose }: { onClose: () => void }) {
+export function AIChatPanel({ isOpen = true, onClose }: { isOpen?: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
